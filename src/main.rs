@@ -54,7 +54,19 @@ impl Game {
         println!("{}CONNECT 4 (Move {}){}", ORANGE, self.current_move, RESET);
         println!("{}--------------------{}", ORANGE, RESET);
 
-        // show the board!
+        for row in self.board{
+            let row_str:String = row
+                .iter()
+                .map(|&cell| match cell{
+                    1 => "0xF0 0x9F 0x94 0xB4", // red
+                    2 => "0xF0 0x9F 0x9F 0xA1", // yellow
+                    _ => "0xE2 0x97 0x8F", // black
+                })
+                .collect::<Vec<&str>>()
+                .join(" ");
+
+            println!("{}", row_str);
+        }
 
         println!("{}--------------------{}", ORANGE, RESET);
 
