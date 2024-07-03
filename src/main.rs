@@ -1,4 +1,6 @@
 // https://www.youtube.com/watch?v=nnqZtBgnWKM
+// cargo watch -c -w src -x run
+
 const BOARD_WIDTH: usize = 7;
 const BOARD_HEIGHT: usize = 6;
 
@@ -58,9 +60,9 @@ impl Game {
             let row_str:String = row
                 .iter()
                 .map(|&cell| match cell{
-                    1 => "0xF0 0x9F 0x94 0xB4", // red
-                    2 => "0xF0 0x9F 0x9F 0xA1", // yellow
-                    _ => "0xE2 0x97 0x8F", // black
+                    1 => "🔴", // red
+                    2 => "🟡", // yellow
+                    _ => "⚫", // black
                 })
                 .collect::<Vec<&str>>()
                 .join(" ");
@@ -70,12 +72,19 @@ impl Game {
 
         println!("{}--------------------{}", ORANGE, RESET);
 
-        // put the winner here!
+        if self.is_finished {
+            match self.winner {
+                PLAYER::One => println!("{} 🔴 Player One has won!{}", ORANGE, RESET),
+                PLAYER::Two => println!("{} 🟡 Player Two has won!{}", ORANGE, RESET),
+                PLAYER::None => println!("{} It's a draw!{}", ORANGE, RESET),
+            }
+        }
 
         println!("{}--------------------{}", ORANGE, RESET);
     }
 }
 
 fn main() {
-    println!("Hello, world!");
+    let mut Game = Game::default();
+    Game.display_board();
 }
