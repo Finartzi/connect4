@@ -1,12 +1,14 @@
 // https://www.youtube.com/watch?v=nnqZtBgnWKM
 // cargo watch -c -w src -x run
 
+//use std::fmt::write;
+
 const BOARD_WIDTH: usize = 7;
 const BOARD_HEIGHT: usize = 6;
 
 const RESET:  &str  = "\x1b[0m";
 const ORANGE    :&str = "\x1b[93m";
-const EWD :&str = "\x1b[31m";
+const RED :&str = "\x1b[0;31m";
 type BOARD = [[u8; BOARD_WIDTH]; BOARD_HEIGHT];
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -26,6 +28,25 @@ impl PLAYER {
         }
     }
 }
+
+#[derive(Debug)]
+enum MoveError{
+    GameFinished,
+    InvalidColumn,
+    ColumnFull,
+}
+
+impl std::fmt::Display for MoveError{
+    fn fmt (&self, f: &mut std::fmt::Formatter<'_ >) ->
+        std::fmt::Result {
+            match self {
+                MoveError::ColumnFull => write!(f, "column is full"),
+                MoveError::InvalidColumn => write!(f, "column must be between 1 and 7"),
+                MoveError::GameFinished => write!(f, "game is already finished."),
+            }
+        }
+    }
+
 struct Game {
     current_move: u8,
     current_player: PLAYER,
@@ -82,9 +103,42 @@ impl Game {
 
         println!("{}--------------------{}", ORANGE, RESET);
     }
+
+    fn display_error (&self, error:String) {
+        self.display_board();
+        println!("{}Error: {}{}", RED, error, RESET);
+    }
+
+    fn play_move(&mut self, column: usize) -> Result<(), MoveError>{
+        if self.is_finished {
+            return Err(MoveError::GameFinished);
+        }
+        if column >= BOARD_HEIGHT {
+            return Err(MoveError::ColumnFull);
+        }
+        if let Some(row) = (0..BOARD_HEIGHT)
+            .rev()
+            .find(|&row| self.board[row][column] == 0) {
+            self.board[row][column] = self.current_player as u8;
+        } else {
+            return Err(MoveError::InvalidColumn);
+        }
+        self.current_move += 1;
+        self.current_player = match self.current_player {
+            PLAYER::One => PLAYER::Two,
+            _ => PLAYER::One,
+        };
+        Ok(());
+    }
 }
 
 fn main() {
-    let mut Game = Game::default();
-    Game.display_board();
+    let mut game = Game::default();
+    game.play_move(1);
+    game.play_move(2);
+    game.play_move(3);
+    game.play_move(4);
+    game.play_move(3);
+    game.play_move(2);
+    game.display_board();
 }
