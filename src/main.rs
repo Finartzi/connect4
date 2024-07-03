@@ -109,6 +109,54 @@ impl Game {
         println!("{}Error: {}{}", RED, error, RESET);
     }
 
+    fn calculate_winner (&mut self) -> PLAYER{
+        if self.current_move < 7 {
+            return PLAYER::None;
+        }
+        let directions = [
+            (0, 1),     // horizontal
+            (1, 0),     // vertical
+            (1, 1),     // diagonal  (top left to bottom right)
+            (-1, 1),    // diagonal (bottom left to top right)
+        ];
+
+        // testing
+        for row in 0..BOARD_HEIGHT{
+            for col in 0..BOARD_WIDTH{
+                let cell  = self.board[row][col];
+                if cell != 0 {
+                    for (row_step, col_step) in directions{
+                        let mut consecutive_count = 1;
+                        let mut r = row as isize + row_step;
+                        let mut c = col as isize + col_step;
+
+                        while r > 0
+                            && r < BOARD_HEIGHT as isize
+                            && c >= 0
+                            && c < BOARD_WIDTH as isize{
+                                if self.board[r as usize][c as usize] == cell {
+                                    consecutive_count +=1;
+                                    if consecutive_count  == 4 {
+                                        self.is_finished = true;
+                                        return PLAYER::from_int(cell);
+                                    }
+                                } else {
+                                    break;
+                                }
+                            r += row_step;
+                            c += col_step;
+                        }
+
+                    }
+                }
+            }
+        }
+        if self.current_move>=BOARD_HEIGHT as u8 * BOARD_WIDTH as u8{
+            self.is_finished=true;
+        }
+        PLAYER::None
+    }
+
     fn play_move(&mut self, column: usize) -> Result<(), MoveError>{
         if self.is_finished {
             return Err(MoveError::GameFinished);
@@ -120,14 +168,20 @@ impl Game {
             .rev()
             .find(|&row| self.board[row][column] == 0) {
             self.board[row][column] = self.current_player as u8;
+            self.current_move += 1;
         } else {
             return Err(MoveError::InvalidColumn);
         }
-        self.current_move += 1;
-        self.current_player = match self.current_player {
-            PLAYER::One => PLAYER::Two,
-            _ => PLAYER::One,
-        };
+
+        let calculated_winner = self.calculate_winner();
+        if calculated_winner != PLAYER::None {
+            self.winner = calculated_winner;
+        } else {
+            self.current_player = match self.current_player {
+                PLAYER::One => PLAYER::Two,
+                _ => PLAYER::One,
+            };
+        }
         Ok(());
     }
 }
