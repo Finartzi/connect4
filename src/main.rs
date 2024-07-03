@@ -3,6 +3,8 @@
 
 //use std::fmt::write;
 
+use std::io;
+
 const BOARD_WIDTH: usize = 7;
 const BOARD_HEIGHT: usize = 6;
 
@@ -188,11 +190,42 @@ impl Game {
 
 fn main() {
     let mut game = Game::default();
-    game.play_move(1);
-    game.play_move(2);
-    game.play_move(3);
-    game.play_move(4);
-    game.play_move(3);
-    game.play_move(2);
     game.display_board();
+
+    while !game.is_finished{
+        println!("\n");
+        match game.current_player {
+            PLAYER::One => println!("PLAYER ONE"),
+            PLAYER::Two => println!("PLAYER TWO"),
+            _ => (),
+        }
+        println!("Enter a column between 1 and 7: ");
+        let mut user_move = String::new();
+        io::stdin()
+            . read_line(&mut user_move)
+            . expect("Failed to read line");
+
+        let user_move : usize = match user_move.trim().parse() {
+            Ok(num) => {
+                if num < 1 || num > 7 {
+                    game.display_error(MoveError::InvalidColumn.to_string());
+                    continue;
+                } else {
+                    num
+                }
+            }
+            Err(err) => {
+                game.display_error(err.to_string());
+                continue;
+            }
+        };
+        match game.play_move(user_move -1) {
+            Ok() => {
+                game.display_board();
+            }
+            Err(err) => {
+                game.display_error(err.to_string());
+            }
+        }
+    }
 }
